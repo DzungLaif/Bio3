@@ -117,8 +117,7 @@ vv_plot <- vv_plot %>%
     pval > 0.05  ~ "> 0.05",
     pval < 0.05 & pval > 0.01 ~ "< 0.05",
     pval < 0.01 & pval > 0.001 ~ "< 0.01",
-    pval < 0.001 ~ "< 0.001"
-  ))
+    pval < 0.001 ~ "< 0.001"))
 vv_plot %>% 
   ggplot(aes(x = Principle_Component, y = variables, fill = pval_cat)) +
   geom_tile() + 
