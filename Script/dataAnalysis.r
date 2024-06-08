@@ -11,6 +11,8 @@ library(Rsubread)
 
 library(pheatmap)
 library(edgeR)
+library("DESeq2")
+library(ggplot2)
 
 # BAM to count file
 aligned <- featureCounts(here::here("data", "HG00097.mapped.ILLUMINA.bwa.GBR.exome.20130415.bam"), annot.inbuilt = "hg19", isPairedEnd = TRUE)
@@ -123,3 +125,26 @@ vv_plot %>%
   geom_tile() + 
   theme_bw() +
   labs(x = "PC", y = "Variables" , fill = "P value")
+
+# using Deseq2
+dds <- DESeqDataSetFromMatrix(countData=eDat, 
+                              colData=pDat, 
+                              design=~dex, tidy = TRUE)
+dds <- DESeq(dds)
+res <- results(dds)
+head(results(dds, tidy=TRUE))
+summary(res)
+
+# Sort summary list by p-value
+res <- res[order(res$padj),]
+head(res)
+
+# Make a volcano plot, add colored points: blue if padj<0.01, red if log2FC>1 and padj<0.05)
+par(mfrow=c(1,1))
+with(res, plot(log2FoldChange, -log10(pvalue), pch=20, main="Volcano plot", xlim=c(-3,3)))
+with(subset(res, padj<.01 ), points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+with(subset(res, padj<.01 & abs(log2FoldChange)>2), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+
+# Plot PCA
+vsdata <- vst(dds, blind=FALSE)
+plotPCA(vsdata, intgroup="Sex")
